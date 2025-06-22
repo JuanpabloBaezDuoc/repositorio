@@ -4,15 +4,9 @@ import com.ecomarket.springboot.webapp.ecomarket_web.entities.Usuario;
 import com.ecomarket.springboot.webapp.ecomarket_web.repository.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,19 +19,22 @@ public class UsuarioRestController {
     private UsuarioRepository service;
 
     @GetMapping
-    public List<Usuario> listarUsuarios() {
-        return service.findByAll();
+    public ResponseEntity<List<Usuario>> listarUsuarios() {
+        List<Usuario> usuarios = service.findByAll();
+        return ResponseEntity.ok(usuarios);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
         Optional<Usuario> usuarioOptional = service.findById(id);
-        return usuarioOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return usuarioOptional.map(ResponseEntity::ok)
+                              .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Usuario crearUsuario(@RequestBody Usuario usuario) {
-        return service.save(usuario);
+    public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario) {
+        Usuario creado = service.save(usuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")
@@ -49,7 +46,8 @@ public class UsuarioRestController {
             usuario.setApellido(usuarioDetails.getApellido());
             usuario.setCorreo(usuarioDetails.getCorreo());
             usuario.setCelular(usuarioDetails.getCelular());
-            return ResponseEntity.ok(service.save(usuario));
+            Usuario actualizado = service.save(usuario);
+            return ResponseEntity.ok(actualizado);
         }
         return ResponseEntity.notFound().build();
     }
@@ -62,6 +60,5 @@ public class UsuarioRestController {
         }
         return ResponseEntity.notFound().build();
     }
-
-    
 }
+
