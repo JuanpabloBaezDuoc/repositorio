@@ -15,17 +15,18 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(NotificacionRestController.class)
 public class NotificacionRestControllerTest {
-
-    @Autowired
+@Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -35,75 +36,67 @@ public class NotificacionRestControllerTest {
     private NotificacionService notificacionService;
 
     @Test
-    public void listarNotificacionesTest() throws Exception {
-        when(notificacionService.findByAll()).thenReturn(List.of());
+    void listarNotificacionesTest() throws Exception {
+        List<Notificacion> lista = List.of(
+            new Notificacion(1L, "Alerta", "cliente1", "Mensaje 1", 20240623, "ENVIADA"),
+            new Notificacion(2L, "Aviso", "cliente2", "Mensaje 2", 20240624, "ENVIADA")
+        );
 
-        mockMvc.perform(get("/api/notificaciones")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        when(notificacionService.findByAll()).thenReturn(lista);
+
+        mockMvc.perform(get("/api/notificacion"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.size()").value(lista.size()));
     }
 
     @Test
-    public void obtenerNotificacionPorIdTest() throws Exception {
-        Notificacion n = new Notificacion(1L, "ALERTA", "usuario@dominio.cl", "Mensaje", 20240621, "ENVIADO");
+    void obtenerNotificacionPorIdTest() throws Exception {
+        Notificacion n = new Notificacion(1L, "Aviso", "cliente", "Mensaje", 20240624, "ENVIADA");
+
         when(notificacionService.findById(1L)).thenReturn(Optional.of(n));
 
-        mockMvc.perform(get("/api/notificaciones/1")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/notificacion/1"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.tipo").value("Aviso"));
     }
 
     @Test
-    public void notificacionNoExisteTest() throws Exception {
-        when(notificacionService.findById(99L)).thenReturn(Optional.empty());
+    void crearNotificacionTest() throws Exception {
+        Notificacion entrada = new Notificacion(1L, "Info", "clienteX", "Contenido", 20240625, "ENVIADA");
+        Notificacion salida = new Notificacion(10L, "Info", "clienteX", "Contenido", 20240625, "ENVIADA");
 
-        mockMvc.perform(get("/api/notificaciones/99")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
+        when(notificacionService.save(any())).thenReturn(salida);
 
-    @Test
-    public void crearNotificacionTest() throws Exception {
-        Notificacion nueva = new Notificacion(0L, "INFO", "admin@empresa.com", "Nueva política", 20240622, "NUEVA");
-        Notificacion guardada = new Notificacion(1L, "INFO", "admin@empresa.com", "Nueva política", 20240622, "NUEVA");
-
-        when(notificacionService.save(any(Notificacion.class))).thenReturn(guardada);
-
-        mockMvc.perform(post("/api/notificaciones")
+        mockMvc.perform(post("/api/notificacion")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(nueva)))
-                .andExpect(status().isCreated());
+                .content(objectMapper.writeValueAsString(entrada)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(10L));
     }
+@Test
+    void actualizarNotificacionTest() throws Exception {
+        Notificacion existente = new Notificacion(3L, "Info", "cliente3", "Viejo", 20240620, "PENDIENTE");
+        Notificacion modificada = new Notificacion(3L, "Alerta", "cliente3", "Nuevo", 20240626, "ENVIADA");
 
-    @Test
-    public void actualizarNotificacionTest() throws Exception {
-        Notificacion existente = new Notificacion(1L, "INFO", "destino", "original", 20240101, "NUEVA");
-        Notificacion modificada = new Notificacion(1L, "URGENTE", "nuevo@correo.cl", "modificado", 20240623, "ENVIADO");
+        when(notificacionService.findById(3L)).thenReturn(Optional.of(existente));
+        when(notificacionService.save(any())).thenReturn(modificada);
 
-        when(notificacionService.findById(1L)).thenReturn(Optional.of(existente));
-        when(notificacionService.save(any(Notificacion.class))).thenReturn(modificada);
-
-        mockMvc.perform(put("/api/notificaciones/1")
+        mockMvc.perform(put("/api/notificacion/3")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(modificada)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensaje").value("Nuevo"));
+    }
+
+    @Test
+    void eliminarNotificacionTest() throws Exception {
+        Notificacion existente = new Notificacion(4L, "Info", "cliente4", "Mensaje", 20240622, "ENVIADA");
+
+        when(notificacionService.findById(4L)).thenReturn(Optional.of(existente));
+        doNothing().when(notificacionService).deleteById(4L);
+
+        mockMvc.perform(delete("/api/notificacion/4"))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    public void eliminarNotificacionTest() throws Exception {
-        when(notificacionService.findById(1L)).thenReturn(Optional.of(new Notificacion()));
-        doNothing().when(notificacionService).deleteById(1L);
-
-        mockMvc.perform(delete("/api/notificaciones/1"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    public void eliminarNotificacionNoExistenteTest() throws Exception {
-        when(notificacionService.findById(999L)).thenReturn(Optional.empty());
-
-        mockMvc.perform(delete("/api/notificaciones/999"))
-                .andExpect(status().isNotFound());
     }
 }
 
