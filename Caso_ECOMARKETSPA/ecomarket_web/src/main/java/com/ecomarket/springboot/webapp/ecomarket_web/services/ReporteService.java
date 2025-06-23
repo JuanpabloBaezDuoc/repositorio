@@ -12,7 +12,7 @@ public interface ReporteService {
 
     Reporte save(Reporte unReporte);
 
-    void deleteById(Long id);   
+    Optional<Reporte> delete(Long id);
 
     
 }

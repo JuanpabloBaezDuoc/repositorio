@@ -12,32 +12,33 @@ import com.ecomarket.springboot.webapp.ecomarket_web.repository.ReporteRepositor
 
 @Service
 public class ReporteServiceImpl implements ReporteService{
-
-
     @Autowired
-    private ReporteRepository repository;
+    private ReporteRepository reporterepositories ;
 
     @Override
     @Transactional(readOnly = true)
     public List<Reporte> findByAll() {
-        return (List<Reporte>) repository.findAll();
+        return (List<Reporte>) reporterepositories.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Reporte> findById(Long id) {
-        return repository.findById(id);
+        return reporterepositories.findById(id);
     }
 
     @Override
     @Transactional
     public Reporte save(Reporte unReporte) {
-        return repository.save(unReporte);
+        return reporterepositories.save(unReporte);
     }
 
     @Override
     @Transactional
-    public void deleteById(Long id) {
-        repository.deleteById(id); 
-    }
- }
+    public Optional<Reporte> delete(Long id) {
+    Optional<Reporte> reporteOptional = reporterepositories.findById(id);
+    reporteOptional.ifPresent(reporte -> reporterepositories.deleteById(id));
+    return reporteOptional;
+}
+
+}
