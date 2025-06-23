@@ -1,5 +1,6 @@
 package com.ecomarket.springboot.webapp.ecomarket_web.restcontrollers;
 
+import com.ecomarket.springboot.webapp.ecomarket_web.controllers.UsuarioRestController;
 import com.ecomarket.springboot.webapp.ecomarket_web.entities.Usuario;
 import com.ecomarket.springboot.webapp.ecomarket_web.repository.UsuarioRepository;
 
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(UsuarioRestControllerTest.class)
+@WebMvcTest(UsuarioRestController.class)
 public class UsuarioRestControllerTest {
 
     @Autowired
