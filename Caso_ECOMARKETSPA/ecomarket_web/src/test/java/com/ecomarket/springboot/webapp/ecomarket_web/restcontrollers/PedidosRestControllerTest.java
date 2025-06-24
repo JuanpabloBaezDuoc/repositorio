@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(PedidoRestController.class)
-public class PedidosControllerTest {
+public class PedidosRestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
